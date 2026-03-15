@@ -40,14 +40,14 @@ const Logs = () => {
         </div>
         
         <div className="flex gap-3">
-          <div className="relative">
-            <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <div className="relative group">
+            <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-primary-main transition-colors" />
             <input 
               type="text" 
-              placeholder="Search logs..." 
+              placeholder="Search forensic logs..." 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="glass-input pl-9 w-64 text-sm"
+              className="glass-input pl-10 w-72 text-sm focus:ring-1 focus:ring-primary-main/50"
             />
           </div>
           <button className="btn-primary bg-dark-800 text-gray-300 hover:bg-dark-700 hover:text-white border border-dark-600">

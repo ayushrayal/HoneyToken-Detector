@@ -16,9 +16,22 @@ router.get('/stats', auth, async (req, res) => {
     // Get recent activity
     const recentActivity = await ActivityLog.find().sort({ timestamp: -1 }).limit(5);
 
-    // Prepare data for Heatmap (Count of actions by hour or day)
-    // For simplicity, we'll return top 5 most accessed files
-    const topFiles = await ActivityLog.aggregate([
+    // Alerts per hour (last 24 hours)
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const alertsPerHour = await Alert.aggregate([
+      { $match: { timestamp: { $gte: twentyFourHoursAgo } } },
+      {
+        $group: {
+          _id: { $hour: "$timestamp" },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { "_id": 1 } }
+    ]);
+
+    // Top attacked files (Honeypots only)
+    const topAttackedFiles = await ActivityLog.aggregate([
+      { $match: { isSuspicious: true } },
       { $group: { _id: '$fileName', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 5 }
@@ -32,7 +45,7 @@ router.get('/stats', auth, async (req, res) => {
       { $match: { timestamp: { $gte: sevenDaysAgo } } },
       { 
         $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$timestamp' } },
+          _id: { $dateToString: { format: '%m-%d', date: '$timestamp' } },
           count: { $sum: 1 }
         }
       },
@@ -46,7 +59,8 @@ router.get('/stats', auth, async (req, res) => {
       unreadAlerts,
       suspiciousActivities,
       recentActivity,
-      topFiles,
+      topAttackedFiles,
+      alertsPerHour,
       activityTimeline
     });
 

@@ -6,9 +6,29 @@ const Alert = require("../models/Alert");
 const { sendAlertEmail } = require("./emailService");
 const { takeDashboardSnapshot } = require("./snapshotService");
 const { captureDesktop } = require("./screenshotService");
+const { captureIntruder } = require("./webcamService");
 
 let watcher = null;
 let currentIo = null;
+
+/**
+ * AI Rule Engine: Checks if the file has been triggered recently.
+ * @param {string} fileId 
+ * @returns {Promise<boolean>} True if more than 3 triggers in 2 mins.
+ */
+const checkSuspiciousBehavior = async (fileId) => {
+  try {
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    const count = await Alert.countDocuments({
+      fileId,
+      timestamp: { $gte: twoMinutesAgo }
+    });
+    return count >= 3;
+  } catch (err) {
+    console.error("AI Rule Engine error:", err);
+    return false;
+  }
+};
 
 /**
  * Starts watching a directory for file changes and logs activity/alerts.
@@ -112,15 +132,21 @@ const startWatching = async (io) => {
       if (monitoredFile.type === 'honeypot') shouldAlert = true;
 
       if (shouldAlert) {
+        // AI Rules - Behavioral Detection
+        const isSuspiciousBehavior = await checkSuspiciousBehavior(monitoredFile._id);
+        const finalSeverity = isSuspiciousBehavior || monitoredFile.type === 'honeypot' ? 'critical' : 'high';
+
         // Take Forensic Snapshots
         let snapshotUrl = null;
         let screenshotPath = null;
+        let intruderImage = null;
 
         try {
-          // Both types of screenshots for maximum evidence
-          [snapshotUrl, screenshotPath] = await Promise.all([
-            takeDashboardSnapshot().catch(e => { console.error(e); return null; }),
-            captureDesktop().catch(e => { console.error(e); return null; })
+          // Both types of screenshots and webcam capture
+          [snapshotUrl, screenshotPath, intruderImage] = await Promise.all([
+            takeDashboardSnapshot().catch(e => null),
+            captureDesktop().catch(e => null),
+            captureIntruder().catch(e => null)
           ]);
         } catch (captureErr) {
           console.error("Forensic capture failed:", captureErr.message);
@@ -132,10 +158,13 @@ const startWatching = async (io) => {
           fileName: monitoredFile.name,
           action: action,
           ...forensics,
-          severity: monitoredFile.type === 'honeypot' ? 'critical' : 'high',
-          message: `Alert: ${monitoredFile.name} was ${action}ed.`,
+          severity: finalSeverity,
+          message: isSuspiciousBehavior 
+            ? `AI WARNING: Recurring activity on ${monitoredFile.name}.`
+            : `Alert: ${monitoredFile.name} was ${action}ed.`,
           snapshotUrl,
-          screenshotPath // Desktop screenshot
+          screenshotPath,
+          intruderImage
         });
 
         // Send Email Alert
@@ -147,7 +176,8 @@ const startWatching = async (io) => {
             ...forensics,
             os: forensics.operatingSystem, // Support email template
             timestamp: new Date(),
-            fileType: monitoredFile.type
+            fileType: monitoredFile.type,
+            severity: finalSeverity
           }).then(res => {
             if (res.success) {
                alert.emailSent = true;

@@ -1,13 +1,14 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Shield, ActivitySquare, Bell, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Shield, ActivitySquare, Bell, Settings, LogOut, X, AlertCircle } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 
 const Sidebar = ({ unreadCount }) => {
   const { user, logout } = useContext(AuthContext);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const confirmLogout = () => {
     logout();
     navigate('/login');
   };
@@ -62,13 +63,46 @@ const Sidebar = ({ unreadCount }) => {
 
       <div className="p-4 border-t border-dark-700/50">
         <button
-          onClick={handleLogout}
+          onClick={() => setShowLogoutModal(true)}
           className="flex items-center w-full px-3 py-2.5 text-sm font-medium text-gray-400 rounded-lg hover:bg-danger-main/10 hover:text-danger-main transition-colors"
         >
           <LogOut className="w-5 h-5 mr-3" />
           Logout
         </button>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="glass-card max-w-sm w-full p-6 shadow-2xl border-white/5 animate-scale-up">
+            <div className="flex items-center gap-3 mb-4 text-danger-main">
+              <div className="p-2 bg-danger-main/10 rounded-lg">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Confirm Logout</h3>
+            </div>
+            
+            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+              Are you sure you want to terminate your current session? You will need to re-authenticate to access the dashboard.
+            </p>
+            
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 px-4 py-2 rounded-lg bg-dark-700 text-gray-300 font-medium hover:bg-dark-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmLogout}
+                className="flex-1 px-4 py-2 rounded-lg bg-danger-main text-white font-medium hover:bg-danger-hover shadow-[0_4px_15px_rgba(239,68,68,0.3)] transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

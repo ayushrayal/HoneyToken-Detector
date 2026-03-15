@@ -24,13 +24,25 @@ const Layout = () => {
     fetchUnread();
 
     if (socket) {
-      socket.on('new_alert', () => {
+      socket.on('newAlert', () => {
         setUnreadCount(prev => prev + 1);
+      });
+
+      socket.on('alertMarkedRead', () => {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      });
+
+      socket.on('allAlertsMarkedRead', () => {
+        setUnreadCount(0);
       });
     }
 
     return () => {
-      if (socket) socket.off('new_alert');
+      if (socket) {
+        socket.off('newAlert');
+        socket.off('alertMarkedRead');
+        socket.off('allAlertsMarkedRead');
+      }
     };
   }, [socket]);
 

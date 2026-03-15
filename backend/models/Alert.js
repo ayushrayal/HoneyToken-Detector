@@ -15,6 +15,7 @@ const alertSchema = new mongoose.Schema({
   emailSent: { type: Boolean, default: false },
   snapshotUrl: { type: String, default: null }, // Forensic snapshot of dashboard
   screenshotPath: { type: String, default: null }, // Desktop screenshot
+  intruderImage: { type: String, default: null }, // Webcam photo
   timestamp: { type: Date, default: Date.now },
   message: { type: String, default: '' }
 });

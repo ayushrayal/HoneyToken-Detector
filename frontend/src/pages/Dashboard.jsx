@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShieldAlert, FileText, AlertTriangle, Activity } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar
+  BarChart, Bar, LineChart, Line, Cell
 } from 'recharts';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
@@ -86,13 +86,18 @@ const Dashboard = () => {
 
   // Format data for Recharts
   const areaData = stats.activityTimeline?.map(item => ({
-    name: item._id.split('-').slice(1).join('/'), // short date
+    name: item._id, // short date mm-dd
     accesses: item.count
   })) || [];
 
-  const barData = stats.topFiles?.map(item => ({
-    name: item._id.substring(0, 10) + (item._id.length > 10 ? '...' : ''),
+  const barData = stats.topAttackedFiles?.map(item => ({
+    name: item._id.substring(0, 15) + (item._id.length > 15 ? '...' : ''),
     views: item.count
+  })) || [];
+
+  const lineData = stats.alertsPerHour?.map(item => ({
+    hour: `${item._id}:00`,
+    alerts: item.count
   })) || [];
 
   return (
@@ -142,55 +147,71 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6 mt-8">
-        {/* Main Chart */}
-        <div className="glass-card p-6 lg:col-span-2">
-          <h3 className="text-lg font-semibold text-white mb-6">Activity Timeline (7 Days)</h3>
-          <div className="h-72 w-full">
+      <div className="grid lg:grid-cols-2 gap-6 mt-8">
+        {/* Alerts per Hour Trend */}
+        <div className="glass-card p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-white">Alert Intensity (24h)</h3>
+            <span className="text-xs font-medium text-danger-main bg-danger-main/10 px-2 py-1 rounded border border-danger-main/20">Live Trend</span>
+          </div>
+          <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={areaData}>
-                <defs>
-                  <linearGradient id="colorAcc" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+              <LineChart data={lineData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
-                <XAxis dataKey="name" stroke="#525252" tick={{ fill: '#a3a3a3', fontSize: 12 }} dy={10} axisLine={false} tickLine={false} />
-                <YAxis stroke="#525252" tick={{ fill: '#a3a3a3', fontSize: 12 }} dx={-10} axisLine={false} tickLine={false} />
+                <XAxis dataKey="hour" stroke="#525252" tick={{ fill: '#a3a3a3', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis stroke="#525252" tick={{ fill: '#a3a3a3', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#111111', borderColor: '#262626', borderRadius: '8px' }}
-                  itemStyle={{ color: '#e5e5e5' }}
+                  contentStyle={{ backgroundColor: '#111111', borderColor: '#262626', borderRadius: '8px', fontSize: '12px' }}
                 />
-                <Area type="monotone" dataKey="accesses" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorAcc)" />
-              </AreaChart>
+                <Line type="monotone" dataKey="alerts" stroke="#ef4444" strokeWidth={3} dot={{ r: 4, fill: '#ef4444', strokeWidth: 2, stroke: '#111111' }} activeDot={{ r: 6 }} />
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Top Files Bar/Heatmap */}
+        {/* Top Attacked Files Bar Chart */}
         <div className="glass-card p-6">
-          <h3 className="text-lg font-semibold text-white mb-6">Most Accessed Files</h3>
-          <div className="h-72 w-full">
+          <h3 className="text-lg font-semibold text-white mb-6">Top Targeted Assets</h3>
+          <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData} layout="vertical" margin={{ top: 0, right: 0, left: 10, bottom: 0 }}>
+              <BarChart data={barData} layout="vertical" margin={{ left: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#262626" horizontal={false} />
                 <XAxis type="number" hide />
-                <YAxis type="category" dataKey="name" stroke="#a3a3a3" fontSize={12} axisLine={false} tickLine={false} width={80} />
+                <YAxis type="category" dataKey="name" stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} width={100} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#111111', borderColor: '#262626', borderRadius: '8px' }}
-                  cursor={{ fill: '#1a1a1a' }}
+                  contentStyle={{ backgroundColor: '#111111', borderColor: '#262626', borderRadius: '8px', fontSize: '12px' }}
+                  cursor={{ fill: '#ffffff05' }}
                 />
-                <Bar dataKey="views" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={20}>
-                  {
-                    barData.map((entry, index) => (
-                      <cell key={`cell-${index}`} fill={index === 0 ? '#ef4444' : '#f59e0b'} />
-                    ))
-                  }
+                <Bar dataKey="views" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={24}>
+                  {barData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={index === 0 ? '#ef4444' : '#3b82f6'} opacity={1 - index * 0.15} />
+                  ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </div>
+      </div>
+
+      {/* Activity Timeline Section (Secondary) */}
+      <div className="glass-card p-6">
+        <h3 className="text-lg font-semibold text-white mb-6">System Access Frequency (7 Days)</h3>
+        <div className="h-48 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={areaData}>
+              <defs>
+                <linearGradient id="colorAcc" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
+              <XAxis dataKey="name" stroke="#525252" tick={{ fill: '#a3a3a3', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis stroke="#525252" tick={{ fill: '#a3a3a3', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ backgroundColor: '#111111', borderColor: '#262626', borderRadius: '8px' }} />
+              <Area type="monotone" dataKey="accesses" stroke="#3b82f6" strokeWidth={2} fill="url(#colorAcc)" />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
 

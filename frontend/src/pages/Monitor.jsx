@@ -117,47 +117,70 @@ const Monitor = () => {
         </div>
       )}
 
-      <div className="glass-card overflow-hidden">
-        <table className="w-full text-left border-collapse">
+      <div className="glass-card overflow-hidden relative border-white/5">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-main/5 to-transparent pointer-events-none"></div>
+        <table className="w-full text-left border-collapse relative z-10">
           <thead>
-            <tr className="bg-dark-800/50 border-b border-dark-700 text-sm font-semibold text-gray-400 uppercase tracking-wider">
-              <th className="px-6 py-4">File Name</th>
-              <th className="px-6 py-4">Path</th>
-              <th className="px-6 py-4">Type</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4 text-right">Actions</th>
+            <tr className="bg-dark-800/80 border-b border-dark-700 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
+              <th className="px-6 py-5">Managed Asset</th>
+              <th className="px-6 py-5">Core Directory</th>
+              <th className="px-6 py-5">Classification</th>
+              <th className="px-6 py-5">Guardian Status</th>
+              <th className="px-6 py-5 text-right whitespace-nowrap">Control Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-dark-700/50">
             {files.map(file => (
-              <tr key={file._id} className="hover:bg-dark-800/20 transition-colors">
-                <td className="px-6 py-4 text-white font-medium flex items-center gap-3">
-                  <Shield className={`w-4 h-4 ${file.type === 'honeypot' ? 'text-danger-main' : 'text-primary-main'}`} />
-                  {file.name}
-                </td>
-                <td className="px-6 py-4 text-gray-400 text-sm truncate max-w-xs" title={file.path}>{file.folder}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${file.type === 'honeypot' ? 'bg-danger-main/10 text-danger-main border border-danger-main/20' : 'bg-dark-700 text-gray-300'}`}>
-                    {file.type.toUpperCase()}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-success animate-pulse-fast"></span>
-                    <span className="text-sm text-gray-400">Monitoring</span>
+              <tr key={file._id} className="group hover:bg-white/[0.02] transition-colors">
+                <td className="px-6 py-5">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${file.type === 'honeypot' ? 'bg-danger-main/10 text-danger-main' : 'bg-primary-main/10 text-primary-main'}`}>
+                      <Shield className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-white font-bold text-sm tracking-tight">{file.name}</div>
+                      <div className="text-[10px] text-gray-500 font-mono mt-0.5 truncate max-w-[200px]">{file.path}</div>
+                    </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-right space-x-3">
-                  <button onClick={() => handleDelete(file._id)} className="text-gray-500 hover:text-danger-main transition-colors p-1">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <td className="px-6 py-5">
+                   <div className="text-xs text-gray-400 bg-dark-800 px-2 py-1 rounded inline-block border border-dark-700">
+                      {file.folder || '/root'}
+                   </div>
+                </td>
+                <td className="px-6 py-5">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black tracking-widest uppercase border ${
+                    file.type === 'honeypot' ? 'bg-danger-main/10 text-danger-main border-danger-main/30' : 'bg-dark-700 text-gray-400 border-dark-600'
+                  }`}>
+                    {file.type}
+                  </span>
+                </td>
+                <td className="px-6 py-5">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
+                    </span>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Active Watch</span>
+                  </div>
+                </td>
+                <td className="px-6 py-5 text-right">
+                  <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => handleDelete(file._id)} className="p-2 rounded-lg bg-danger-main/10 text-danger-main hover:bg-danger-main hover:text-white transition-all">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
             {files.length === 0 && (
               <tr>
-                <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
-                   No files currently monitored. Add one to get started.
+                <td colSpan="5" className="px-6 py-20 text-center">
+                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-dark-800 border border-dark-700 mb-4 text-gray-600">
+                      <Shield className="w-8 h-8" />
+                   </div>
+                   <h3 className="text-lg font-bold text-white mb-1">Defense Perimeter Empty</h3>
+                   <p className="text-sm text-gray-500 max-w-xs mx-auto">No files are currently being monitored. Deploy a Honeypot to begin detection.</p>
                 </td>
               </tr>
             )}

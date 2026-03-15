@@ -15,8 +15,10 @@ import Settings from './pages/Settings';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
+  const isSnapshot = new URLSearchParams(window.location.search).get('snapshot') === 'true';
+  
   if (loading) return <div className="min-h-screen bg-dark-900 flex items-center justify-center text-white">Loading...</div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user && !isSnapshot) return <Navigate to="/login" replace />;
   return children;
 };
 
