@@ -6,6 +6,7 @@ const MonitoredFile = require('../models/MonitoredFile');
 const Alert = require('../models/Alert');
 const { sendAlertEmail } = require('../services/emailService');
 const { takeDashboardSnapshot } = require('../services/snapshotService');
+const UAParser = require('ua-parser-js');
 
 // Get all activity logs
 router.get('/', auth, async (req, res) => {
@@ -26,6 +27,15 @@ router.post('/', async (req, res) => {
     const file = await MonitoredFile.findById(fileId);
     if (!file) return res.status(404).json({ message: 'File not found' });
 
+    // Parse User-Agent
+    const ua = new UAParser(req.headers['user-agent']);
+    const browser = ua.getBrowser();
+    const os = ua.getOS();
+    const device = ua.getDevice();
+    
+    const deviceInfoStr = `${device.vendor || ''} ${device.model || ''} (${browser.name} ${browser.version})`.trim() || 'Desktop';
+    const osStr = `${os.name} ${os.version}`.trim() || 'Unknown OS';
+
     // Create log
     const log = await ActivityLog.create({
       fileId: file._id,
@@ -35,7 +45,9 @@ router.post('/', async (req, res) => {
       action,
       userName: userName || 'Unknown',
       ipAddress: ipAddress || req.ip || 'Unknown',
-      deviceInfo: deviceInfo || req.headers['user-agent'] || 'Unknown',
+      deviceInfo: deviceInfo || deviceInfoStr,
+      userAgent: req.headers['user-agent'] || 'Unknown',
+      os: osStr,
       duration: duration || 0,
       isSuspicious: file.type === 'honeypot'
     });
@@ -59,6 +71,8 @@ router.post('/', async (req, res) => {
         userName: log.userName,
         ipAddress: log.ipAddress,
         deviceInfo: log.deviceInfo,
+        userAgent: log.userAgent,
+        os: log.os,
         severity: 'critical',
         snapshotUrl,
         message: `Honeypot trap file '${file.name}' was ${action}.`
@@ -71,6 +85,8 @@ router.post('/', async (req, res) => {
         userName: log.userName,
         ipAddress: log.ipAddress,
         deviceInfo: log.deviceInfo,
+        userAgent: log.userAgent,
+        os: log.os,
         timestamp: log.timestamp,
         fileType: file.type
       });
@@ -83,7 +99,7 @@ router.post('/', async (req, res) => {
       // Emit socket event
       const io = req.app.get('io');
       if (io) {
-        io.emit('new_alert', alert);
+        io.emit('newAlert', alert);
       }
     }
 

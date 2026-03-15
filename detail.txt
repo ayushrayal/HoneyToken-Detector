@@ -1,0 +1,159 @@
+# PROJECT DOCUMENTATION: HoneyToken Detector (Nxtzen File Guardian)
+
+## 1. Project Overview
+HoneyToken Detector, also known as **Nxtzen File Guardian**, is a specialized cybersecurity application designed for real-time file system monitoring and threat detection. It solves the problem of "silent" unauthorized access to sensitive corporate data by implementing **HoneyTokens** (trap files). These are decoy files that, when interacted with, trigger immediate alerts, capture forensic evidence, and notify administrators. The primary purpose is to provide an early warning system for internal threats or external breaches.
+
+---
+
+## 2. Technologies Used
+
+*   **JavaScript (ES6+)**: The core programming language used for both the React frontend and Node.js backend, ensuring a unified development experience and efficient asynchronous performance.
+*   **MongoDB**: chosen as the database for its flexibility in handling changing log structures and metadata for monitored files.
+*   **Express.js**: used to build a robust RESTful API that handles authentication, file management, and dashboard data.
+*   **React.js**: enables a high-performance, component-based user interface that supports real-time updates and dynamic data visualization.
+*   **Node.js**: powers the backend server and provides the necessary asynchronous I/O to handle file system watching and socket communication.
+*   **Socket.io**: used for bi-directional real-time communication. It is critical for pushing instant alerts from the server to the dashboard without page reloads.
+*   **ua-parser-js**: Used to extract operating system, browser, and device details from the attacker's User-Agent header for forensic analysis.
+*   **Chokidar**: A specialized file system watcher chosen to overcome the limitations of Node's native `fs.watch`, providing reliable events across different OS environments.
+*   **TailwindCSS**: Used for the UI design to create a premium, responsive dark-themed dashboard with minimal custom CSS.
+
+---
+
+## 3. Project Architecture
+
+*   **Folder Structure**: The project is split into a `frontend/` (React SPA) and `backend/` (Node/Express Server). This separation allows for independent scaling and development.
+*   **Frontend**: Built with React and Vite. It uses a Context-based state management system for Authentication and Socket connections.
+*   **Backend**: A standard MVC-inspired structure. `models/` define the data, `routes/` handle API endpoints, and `services/` contain the core logic for monitoring and alerting.
+*   **Database**: A MongoDB instance stores Users, Monitored Files, Activity Logs, and Alerts.
+*   **Communication**: Communication is primarily via HTTP/REST for data management and WebSockets (Socket.io) for real-time security events.
+
+---
+
+## 4. Libraries and Dependencies
+
+### Backend Dependencies
+*   **Library: Express.js**
+    *   **What it does**: Web framework for Node.js.
+    *   **Why used**: To create the server and handle API routes.
+    *   **Where used**: `server.js`, `routes/` folder.
+*   **Library: Mongoose**
+    *   **What it does**: MongoDB object modeling tool.
+    *   **Why used**: To enforce schemas and interact with the database easily.
+    *   **Where used**: `models/` folder, `server.js`.
+*   **Library: Socket.io**
+    *   **What it does**: Real-time engine.
+    *   **Why used**: To push "newAlert" and "newActivity" events to the client instantly.
+    *   **Where used**: `server.js`, `services/fileWatcher.js`.
+*   **Library: Chokidar**
+    *   **What it does**: File system watcher.
+    *   **Why used**: To monitor changes in local directories reliably.
+    *   **Where used**: `services/fileWatcher.js`.
+*   **Library: Puppeteer**
+    *   **What it does**: Headless browser automation.
+    *   **Why used**: To take "Forensic Snapshots" of the dashboard when an alert triggers.
+    *   **Where used**: `services/snapshotService.js`.
+*   **Library: Nodemailer**
+    *   **What it does**: Email sending library.
+    *   **Why used**: To send instant security reports to admins.
+    *   **Where used**: `services/emailService.js`.
+*   **Library: Bcryptjs**
+    *   **What it does**: Password hashing.
+    *   **Why used**: To secure user credentials in the database.
+    *   **Where used**: `routes/auth.js`.
+*   **Library: Jsonwebtoken (JWT)**
+    *   **What it does**: Secure token generation.
+    *   **Why used**: To handle user authentication sessions.
+    *   **Where used**: `routes/auth.js`, `middleware/auth.js`.
+
+### Frontend Dependencies
+*   **Library: React**
+    *   **What it does**: UI Library.
+    *   **Why used**: To build the dynamic dashboard.
+    *   **Where used**: Throughout the `src/` folder.
+*   **Library: Socket.io-client**
+    *   **What it does**: Client-side websocket connection.
+    *   **Why used**: To listen for events from the backend.
+    *   **Where used**: `context/SocketContext.jsx`.
+*   **Library: Recharts**
+    *   **What it does**: Charting library.
+    *   **Why used**: To visualize activity trends and top accessed files.
+    *   **Where used**: `pages/Dashboard.jsx`.
+*   **Library: Lucide-React**
+    *   **What it does**: Icon set.
+    *   **Why used**: To provide premium security and navigation icons.
+    *   **Where used**: Nearly every UI component.
+*   **Library: React-hot-toast**
+    *   **What it does**: Notification library.
+    *   **Why used**: To show instant popup alerts in the browser.
+    *   **Where used**: `context/SocketContext.jsx`, `pages/Alerts.jsx`.
+
+---
+
+## 5. Workflow of the Project
+
+1.  **Dashboard Load**: The user opens the React app. The `SocketProvider` establishes a persistent connection to the backend.
+2.  **Authentication**: User logs in; a JWT is stored in localStorage and attached to all API requests.
+3.  **File Registration**: User adds a file path to monitor via the **File Monitor** page. 
+4.  **Dynamic Watch**: The Backend saves the file to MongoDB and immediately calls `addWatchPath()`, which adds the path to the running **Chokidar** singleton instance.
+5.  **Incident Detection**: An unauthorized user edits a monitored file. Chokidar detects the `change` event.
+6.  **Backend Processing**: 
+    *   Backend identifies the file in the database.
+    *   An `ActivityLog` is created.
+    *   If it's a "Honeypot", an `Alert` is generated.
+7.  **Real-time Notification**:
+    *   The server emits `newAlert` to all connected clients.
+    *   Puppeteer takes a screenshot of the dashboard.
+    *   An email is sent to the admin.
+8.  **UI Update**: The React app receives the `newAlert` event, shows a toast notification, and injects the new alert into the list without a page refresh.
+
+---
+
+## 6. Feature Explanation
+
+*   **Real-time Monitoring**: Continuous, low-latency surveillance of files using Chokidar.
+*   **Dynamic Path Registration**: Ability to add or remove monitored files without restarting the server.
+*   **Honeypot Traps**: Classification of files that trigger high-severity alerts.
+*   **Forensic Snapshots**: Automatic visual capture of the dashboard state at the moment of breach.
+*   **Interactive Analytics**: Visual charts showing activity over time and frequency of file access.
+*   **Automated Emailing**: Instant SMTP notifications with detailed incident reports.
+
+---
+
+## 7. File by File Explanation
+
+### Backend
+*   **server.js**: The main entry point. Configures middleware, database connection, and initializes the Socket.io server and File Watcher.
+*   **services/fileWatcher.js**: A singleton service managing the Chokidar instance. Exports `startWatching`, `addWatchPath`, and `removeWatchPath`.
+*   **services/snapshotService.js**: Uses Puppeteer to generate a screenshot of the dashboard for evidence.
+*   **routes/files.js**: Handles CRUD for monitored files and communicates with the watcher service to update tracked paths.
+*   **routes/activity.js**: Manages activity logs and triggers alerts/emails for honeytoken breaches.
+*   **models/MonitoredFile.js**: Schema for paths, alert preferences (onEdit, onAccess), and file types.
+
+### Frontend
+*   **src/main.jsx**: Wraps the App with `AuthProvider` and `SocketProvider`.
+*   **context/SocketContext.jsx**: Initializes the socket connection and manages global "newAlert" toast notifications.
+*   **pages/Dashboard.jsx**: Displays security metrics, trends, and recent suspicious activity using Recharts.
+*   **pages/Alerts.jsx**: The real-time notification hub where users view breach details and forensic snapshots.
+*   **pages/Monitor.jsx**: The management interface for defining tracking rules and adding new honeytokens.
+
+---
+
+## 8. Data Flow
+**OS File Event** → **Chokidar (fileWatcher.js)** → **Database (ActivityLog/Alert)** → **Socket.io Emission** → **SocketContext.jsx** → **Alerts/Dashboard UI**
+
+---
+
+## 9. Deployment
+*   **Frontend**: Built with `npm run build` and typically hosted on static platforms like **Vercel** or **Firebase Hosting**.
+*   **Backend**: Hosted on a **Node.js environment** (e.g., Ubuntu VPS, AWS EC2) since it needs persistent OS-level access to the filesystem.
+*   **Database**: Usually a **MongoDB Atlas** cluster for reliable cloud storage.
+*   **Environment**: Configurations are managed via `.env` files (MONGO_URI, JWT_SECRET, EMAIL_USER, etc.).
+
+---
+
+## 10. Future Improvements
+1.  **Role-Based Access Control (RBAC)**: More granular permissions for different security levels.
+2.  **SIEM Integration**: Exporting logs to systems like Splunk or ELK.
+3.  **Process Monitoring**: Tracking which specific Windows/Linux process accessed the file.
+4.  **Network Monitoring**: Correlating file access with specific network traffic patterns.
+5.  **Mobile App**: Dedicated mobile dashboard for on-the-go security officers.

@@ -11,7 +11,7 @@ const createTransporter = () => {
 };
 
 const sendAlertEmail = async (alertData) => {
-  const { fileName, action, userName, ipAddress, deviceInfo, timestamp, fileType } = alertData;
+  const { fileName, action, userName, ipAddress, deviceInfo, userAgent, os, timestamp, fileType } = alertData;
 
   const transporter = createTransporter();
 
@@ -73,6 +73,14 @@ const sendAlertEmail = async (alertData) => {
           <div class="detail-row">
             <div class="detail-label">Device Info</div>
             <div class="detail-value">${deviceInfo}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Operating System</div>
+            <div class="detail-value">${os}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">User Agent</div>
+            <div class="detail-value" style="font-size: 11px;">${userAgent}</div>
           </div>
           <div class="detail-row">
             <div class="detail-label">Date & Time (IST)</div>

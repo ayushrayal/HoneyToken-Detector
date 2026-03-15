@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Image as ImageIcon, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Bell, CheckCircle, Image as ImageIcon, AlertTriangle, ShieldAlert, Monitor } from 'lucide-react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import { useSocket } from '../context/SocketContext';
 
 const Alerts = () => {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSnapshot, setSelectedSnapshot] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const fetchAlerts = async () => {
     try {
@@ -22,6 +24,20 @@ const Alerts = () => {
   useEffect(() => {
     fetchAlerts();
   }, []);
+
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("newAlert", (alert) => {
+      setAlerts((prev) => [alert, ...prev]);
+    });
+
+    return () => {
+      socket.off('newAlert');
+    };
+  }, [socket]);
 
   const markAsRead = async (id) => {
     try {
@@ -91,19 +107,33 @@ const Alerts = () => {
                       <p><span className="text-gray-500">Action:</span> {alert.action.toUpperCase()}</p>
                       <p><span className="text-gray-500">IP:</span> {alert.ipAddress}</p>
                       <p><span className="text-gray-500">Device:</span> {alert.deviceInfo}</p>
+                      <p><span className="text-gray-500">OS:</span> {alert.operatingSystem}</p>
+                      <p><span className="text-gray-500">User Agent:</span> {alert.userAgent}</p>
                       <p><span className="text-gray-500">Time:</span> {new Date(alert.timestamp).toLocaleString()}</p>
                       <p><span className="text-gray-500">Email:</span> {alert.emailSent ? <span className="text-success">Sent</span> : <span className="text-gray-600">Failed/Disabled</span>}</p>
                     </div>
 
-                    {alert.snapshotUrl && (
-                      <button 
-                        onClick={() => setSelectedSnapshot(alert.snapshotUrl)}
-                        className="mt-4 flex items-center gap-2 text-sm text-primary-main hover:text-primary-hover transition-colors"
-                      >
-                        <ImageIcon className="w-4 h-4" />
-                        View Dashboard Snapshot
-                      </button>
-                    )}
+                    <div className="mt-4 flex flex-wrap gap-4">
+                      {alert.snapshotUrl && (
+                        <button 
+                          onClick={() => setSelectedSnapshot(alert.snapshotUrl)}
+                          className="flex items-center gap-2 text-sm text-primary-main hover:text-primary-hover transition-colors"
+                        >
+                          <ImageIcon className="w-4 h-4" />
+                          View Dashboard Snapshot
+                        </button>
+                      )}
+
+                      {alert.screenshotPath && (
+                        <button 
+                          onClick={() => setSelectedImage(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/screenshots/${alert.screenshotPath}`)}
+                          className="flex items-center gap-2 text-sm text-orange-500 hover:text-orange-400 transition-colors"
+                        >
+                          <Monitor className="w-4 h-4" />
+                          View Incident Snapshot (Desktop)
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -149,6 +179,29 @@ const Alerts = () => {
             </div>
             <div className="p-2 overflow-auto max-h-[70vh]">
               <img src={selectedSnapshot} alt="Dashboard Snapshot" className="w-full h-auto rounded-lg border border-dark-700" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Screenshot Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm" onClick={() => setSelectedImage(null)}>
+          <div className="relative glass-card max-w-6xl w-full p-2 border-orange-500/30" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center p-4 border-b border-dark-700">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Monitor className="w-5 h-5 text-orange-500" />
+                Desktop Capture at Time of Incident
+              </h3>
+              <button 
+                onClick={() => setSelectedImage(null)}
+                className="text-gray-400 hover:text-white"
+              >
+                Close
+              </button>
+            </div>
+            <div className="p-2 overflow-auto max-h-[80vh]">
+              <img src={selectedImage} alt="Desktop Screenshot" className="w-full h-auto rounded-lg shadow-2xl" />
             </div>
           </div>
         </div>

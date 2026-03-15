@@ -14,7 +14,7 @@ export const SocketProvider = ({ children }) => {
     setSocket(newSocket);
 
     // Global listener for new alerts
-    newSocket.on('new_alert', (alert) => {
+    newSocket.on('newAlert', (alert) => {
       toast.custom((t) => (
         <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-dark-800 border-l-4 border-danger-main shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-dark-700`}>
           <div className="flex-1 w-0 p-4">
@@ -41,7 +41,10 @@ export const SocketProvider = ({ children }) => {
       ), { duration: 6000, position: 'top-right' });
     });
 
-    return () => newSocket.close();
+    return () => {
+      newSocket.off('newAlert');
+      newSocket.close();
+    };
   }, []);
 
   return (
@@ -49,4 +52,12 @@ export const SocketProvider = ({ children }) => {
       {children}
     </SocketContext.Provider>
   );
+};
+
+export const useSocket = () => {
+  const context = React.useContext(SocketContext);
+  if (context === undefined) {
+    throw new Error('useSocket must be used within a SocketProvider');
+  }
+  return context;
 };

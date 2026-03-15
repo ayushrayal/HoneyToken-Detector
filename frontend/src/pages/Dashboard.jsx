@@ -6,6 +6,8 @@ import {
 } from 'recharts';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import { useSocket } from '../context/SocketContext';
+import { Monitor, Terminal, Zap, ShieldCheck } from 'lucide-react';
 
 const StatCard = ({ title, value, icon: Icon, colorClass, delay }) => (
   <div className={`glass-card p-6 flex flex-col justify-between relative overflow-hidden animate-fade-in-up`} style={{ animationDelay: `${delay}ms` }}>
@@ -37,12 +39,42 @@ const Dashboard = () => {
     }
   };
 
+  const socket = useSocket();
+
   useEffect(() => {
     fetchStats();
-    // Poll every 30s to keep charts updated
-    const interval = setInterval(fetchStats, 30000);
-    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewAlert = (alert) => {
+       setStats(prev => ({
+         ...prev,
+         unreadAlerts: prev.unreadAlerts + 1,
+         trapFiles: alert.severity === 'critical' ? prev.trapFiles : prev.trapFiles,
+         recentActivity: [alert, ...(prev.recentActivity || [])].slice(0, 10)
+       }));
+       toast.error(`SECURITY BREACH: ${alert.fileName} accessed!`);
+    };
+
+    const handleActivity = (activity) => {
+       setStats(prev => ({
+         ...prev,
+         suspiciousActivities: prev.suspiciousActivities + 1,
+         recentActivity: [activity, ...(prev.recentActivity || [])].slice(0, 10),
+         // Optionally update chart data here if feasible
+       }));
+    };
+
+    socket.on('newAlert', handleNewAlert);
+    socket.on('activityUpdate', handleActivity);
+
+    return () => {
+      socket.off('newAlert', handleNewAlert);
+      socket.off('activityUpdate', handleActivity);
+    };
+  }, [socket]);
 
   if (loading || !stats) {
     return (
@@ -66,9 +98,15 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Security Overview</h1>
-          <p className="text-gray-400 text-sm mt-1">Real-time honeypot monitoring and attack surface metrics</p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Security Intelligence Dashboard</h1>
+            <p className="text-gray-400 text-sm mt-1">Real-time honeypot monitoring and attack surface metrics</p>
+          </div>
+          <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-success/10 border border-success/20 rounded-full">
+            <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div>
+            <span className="text-[10px] font-bold text-success uppercase tracking-wider">System Live</span>
+          </div>
         </div>
       </div>
 

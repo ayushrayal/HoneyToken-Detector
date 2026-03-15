@@ -13,6 +13,8 @@ const activityLogSchema = new mongoose.Schema({
   userName: { type: String, default: 'Unknown' },
   ipAddress: { type: String, default: 'Unknown' },
   deviceInfo: { type: String, default: 'Unknown' },
+  userAgent: { type: String, default: 'Unknown' },
+  os: { type: String, default: 'Unknown' },
   duration: { type: Number, default: 0 }, // seconds
   timestamp: { type: Date, default: Date.now },
   isSuspicious: { type: Boolean, default: false },
