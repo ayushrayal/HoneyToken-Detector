@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { Link } from 'react-router-dom';
 import { Shield, Lock, Mail, ArrowRight } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -23,98 +24,103 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-main/20 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-danger-main/10 rounded-full blur-[120px]"></div>
-      </div>
+    <div className="min-h-screen bg-[#050507] flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.05] pointer-events-none"></div>
+      <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px]"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-accent/10 rounded-full blur-[150px]"></div>
 
-      <div className="w-full max-w-[440px] relative z-10 transition-all duration-500 animate-fade-in">
-        <div className="glass-card p-4 sm:p-10 border-t border-white/10 shadow-2xl">
-          <div className="flex flex-col items-center mb-10">
-            <div className="w-20 h-20 bg-dark-800 rounded-3xl flex items-center justify-center mb-6 shadow-2xl border border-dark-700 ring-1 ring-primary-main/30 relative">
-              <div className="absolute inset-0 bg-primary-main/5 rounded-3xl blur-md"></div>
-              <Shield className="w-10 h-10 text-primary-main relative z-10" />
+      <div className="w-full max-w-[460px] animate-slide-in relative z-10">
+        <div className="glass-card p-10 md:p-12 relative overflow-hidden border-white/[0.08]">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+          
+          <div className="flex flex-col items-center mb-12">
+            <div className="w-24 h-24 bg-gradient-to-br from-[#11111a] to-[#0a0a0f] rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl border border-white/5 ring-4 ring-primary/10 relative group">
+              <div className="absolute inset-0 bg-primary/10 rounded-[2rem] blur-xl group-hover:bg-primary/20 transition-all duration-500"></div>
+              <Shield className="w-12 h-12 text-primary relative z-10 filter drop-shadow-[0_0_8px_var(--primary)]" />
             </div>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight text-center">Nxtzen File Guardian</h2>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="h-[1px] w-4 bg-primary-main/50"></div>
-              <p className="text-primary-main/70 text-xs font-black uppercase tracking-[0.2em]">Secure Access Portal</p>
-              <div className="h-[1px] w-4 bg-primary-main/50"></div>
+            
+            <h2 className="text-4xl font-extrabold text-white tracking-tighter text-center">
+              HoneyToken Sentinel
+            </h2>
+            <div className="flex items-center gap-3 mt-3">
+              <div className="h-[1px] w-6 bg-primary/30"></div>
+              <p className="text-primary/70 text-[10px] font-black uppercase tracking-[0.4em]">HoneyToken Sentinel — v3.0</p>
+              <div className="h-[1px] w-6 bg-primary/30"></div>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Credential Identifier</label>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-2.5">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                <Mail className="w-3 h-3 text-primary/60" /> Authenticator Identity
+              </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary-main">
-                  <Mail className="h-5 w-5 text-gray-500" />
-                </div>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="glass-input pl-12 h-14 border-dark-700 hover:border-dark-600 focus:border-primary-main/50 transition-all text-sm"
-                  placeholder="admin@nxtzen.com"
+                  className="glass-input h-14 bg-white/[0.02] border-white/5 text-sm font-medium tracking-wide placeholder:text-gray-700"
+                  placeholder="admin@sentinel.hq"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between items-center ml-1">
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Access Token</label>
-                <button type="button" className="text-[10px] font-bold text-primary-main/50 hover:text-primary-main transition-colors uppercase tracking-widest">Forgot?</button>
+            <div className="space-y-2.5">
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                  <Lock className="w-3 h-3 text-primary/60" /> Cryptographic Token
+                </label>
+                <Link to="/forgot-password" title="Recover Access" className="text-[10px] font-black text-primary/70 uppercase tracking-widest hover:text-primary hover:underline">
+                  Forgot?
+                </Link>
               </div>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary-main">
-                  <Lock className="h-5 w-5 text-gray-500" />
-                </div>
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="glass-input pl-12 h-14 border-dark-700 hover:border-dark-600 focus:border-primary-main/50 transition-all text-sm"
-                  placeholder="••••••••"
+                  className="glass-input h-14 bg-white/[0.02] border-white/5 text-sm font-medium tracking-wide placeholder:text-gray-700"
+                  placeholder="••••••••••••"
                 />
               </div>
             </div>
 
-            <div className="pt-4 flex flex-col gap-4">
+            <div className="pt-4">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-14 bg-primary-main hover:bg-primary-hover text-white rounded-2xl font-bold flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(59,130,246,0.3)] hover:shadow-[0_0_40px_rgba(59,130,246,0.5)] transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="w-full h-16 btn-primary rounded-2xl text-base font-bold uppercase tracking-widest group relative overflow-hidden"
               >
-                <span>{loading ? 'Validating Presence...' : 'Initialize Session'}</span>
-                {!loading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
-              </button>
-              
-              <div className="flex items-center gap-4 py-2">
-                <div className="h-[1px] flex-1 bg-dark-700"></div>
-                <span className="text-[10px] uppercase font-bold text-gray-600 tracking-widest">or</span>
-                <div className="h-[1px] flex-1 bg-dark-700"></div>
-              </div>
-
-              <button
-                type="button"
-                className="w-full h-12 rounded-xl text-sm font-bold text-gray-400 hover:text-white transition-all flex items-center justify-center gap-2 border border-dark-700 hover:border-dark-600 bg-white/0 hover:bg-white/[0.02]"
-              >
-                Contact Headquarters for Onboarding
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                <span>{loading ? 'Initializing Interface...' : 'Grant Access'}</span>
+                {!loading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />}
               </button>
             </div>
           </form>
+          
+          <div className="mt-8 text-center">
+            <p className="text-gray-500 text-xs font-medium">
+              Don't have clearance? {' '}
+              <Link to="/signup" className="text-primary font-bold hover:underline">
+                Register as Sentinel
+              </Link>
+            </p>
+          </div>
+          
+          <div className="mt-10 pt-10 border-t border-white/5 flex flex-col items-center gap-4">
+            <div className="px-4 py-1.5 rounded-full border border-white/5 bg-white/[0.02]">
+               <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Protocol Secured: 256-BIT END-TO-END</span>
+            </div>
+          </div>
         </div>
         
-        <div className="mt-8 flex flex-col items-center gap-2">
-          <div className="flex items-center gap-3 grayscale opacity-30 hover:grayscale-0 hover:opacity-100 transition-all duration-700 cursor-default">
-            <span className="text-[10px] font-black tracking-[0.3em] uppercase text-gray-400">Secure Protocol v4.2</span>
-          </div>
-          <p className="text-gray-600 text-[10px] tracking-[0.1em] uppercase font-bold">
-            Controlled Unclassified Information
+        <div className="mt-12 text-center space-y-3 opacity-40 hover:opacity-100 transition-all duration-500">
+          <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Authorized Personnel Only</p>
+          <p className="text-[9px] text-gray-700 font-medium px-12">
+            Warning: This system is for the use of authorized users only. Individuals using this computer system without authority or in excess of their authority are subject to having all of their activities monitored.
           </p>
         </div>
       </div>

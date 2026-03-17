@@ -1,25 +1,37 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const auth = require('../middleware/auth');
 const MonitoredFile = require('../models/MonitoredFile');
 const ActivityLog = require('../models/ActivityLog');
 const Alert = require('../models/Alert');
 
 router.get('/stats', auth, async (req, res) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: 'Unauthorized: User not identified' });
+  }
+
   try {
-    const totalFiles = await MonitoredFile.countDocuments();
-    const trapFiles = await MonitoredFile.countDocuments({ type: 'honeypot' });
-    const totalAlerts = await Alert.countDocuments();
-    const unreadAlerts = await Alert.countDocuments({ isRead: false });
-    const suspiciousActivities = await ActivityLog.countDocuments({ isSuspicious: true });
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+
+    const totalFiles = await MonitoredFile.countDocuments({ userId });
+    const trapFiles = await MonitoredFile.countDocuments({ userId, type: 'honeypot' });
+    const totalAlerts = await Alert.countDocuments({ userId });
+    const unreadAlerts = await Alert.countDocuments({ userId, isRead: false });
+    const suspiciousActivities = await ActivityLog.countDocuments({ userId, isSuspicious: true });
     
     // Get recent activity
-    const recentActivity = await ActivityLog.find().sort({ timestamp: -1 }).limit(5);
+    const recentActivity = await ActivityLog.find({ userId }).sort({ timestamp: -1 }).limit(10);
 
     // Alerts per hour (last 24 hours)
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const alertsPerHour = await Alert.aggregate([
-      { $match: { timestamp: { $gte: twentyFourHoursAgo } } },
+      { 
+        $match: { 
+          userId, 
+          timestamp: { $gte: twentyFourHoursAgo } 
+        } 
+      },
       {
         $group: {
           _id: { $hour: "$timestamp" },
@@ -31,7 +43,12 @@ router.get('/stats', auth, async (req, res) => {
 
     // Top attacked files (Honeypots only)
     const topAttackedFiles = await ActivityLog.aggregate([
-      { $match: { isSuspicious: true } },
+      { 
+        $match: { 
+          userId, 
+          isSuspicious: true 
+        } 
+      },
       { $group: { _id: '$fileName', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 5 }
@@ -42,7 +59,12 @@ router.get('/stats', auth, async (req, res) => {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     
     const activityTimeline = await ActivityLog.aggregate([
-      { $match: { timestamp: { $gte: sevenDaysAgo } } },
+      { 
+        $match: { 
+          userId, 
+          timestamp: { $gte: sevenDaysAgo } 
+        } 
+      },
       { 
         $group: {
           _id: { $dateToString: { format: '%m-%d', date: '$timestamp' } },
@@ -65,7 +87,8 @@ router.get('/stats', auth, async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Dashboard Stats Error:', err);
+    res.status(500).json({ message: 'Internal server error while fetching dashboard stats' });
   }
 });
 

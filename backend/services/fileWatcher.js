@@ -21,6 +21,7 @@ const checkSuspiciousBehavior = async (fileId) => {
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
     const count = await Alert.countDocuments({
       fileId,
+      userId: (await MonitoredFile.findById(fileId)).userId, // Get userId from file
       timestamp: { $gte: twoMinutesAgo }
     });
     return count >= 3;
@@ -65,6 +66,8 @@ const startWatching = async (io) => {
     // Support add (open), change (edit), and raw (read)
     if (!['add', 'change', 'unlink', 'raw'].includes(event)) return;
 
+    console.log(`File event detected: [${event}] on ${path}`);
+
     const normalizedPath = path.replace(/\\/g, "/");
     
     try {
@@ -78,6 +81,7 @@ const startWatching = async (io) => {
 
       if (!monitoredFile) return;
 
+      console.log(`File accessed or modified: ${monitoredFile.path}`);
       console.log(`Monitored file matched [${event}]: ${monitoredFile.name}`);
 
       // Map event to action
@@ -101,6 +105,7 @@ const startWatching = async (io) => {
       // Create Activity Log
       const activity = await ActivityLog.create({
         fileId: monitoredFile._id,
+        userId: monitoredFile.userId,
         fileName: monitoredFile.name,
         filePath: monitoredFile.path,
         fileType: monitoredFile.type,
@@ -155,6 +160,7 @@ const startWatching = async (io) => {
         const alert = await Alert.create({
           activityId: activity._id,
           fileId: monitoredFile._id,
+          userId: monitoredFile.userId,
           fileName: monitoredFile.name,
           action: action,
           ...forensics,
@@ -167,25 +173,28 @@ const startWatching = async (io) => {
           intruderImage
         });
 
-        // Send Email Alert
+        // Send Email Alert to all registered users
         try {
-          await sendAlertEmail({
-            fileName: monitoredFile.name,
-            action: action,
-            userName: 'System Watcher',
-            ...forensics,
-            os: forensics.operatingSystem, // Support email template
-            timestamp: new Date(),
-            fileType: monitoredFile.type,
-            severity: finalSeverity
-          }).then(res => {
-            if (res.success) {
-               alert.emailSent = true;
-               alert.save();
-            }
-          });
+          const User = require('../models/User');
+          const users = await User.find({ role: 'admin' });
+          
+          for (const user of users) {
+             await sendAlertEmail({
+                alertId: alert._id,
+                fileName: monitoredFile.name,
+                filePath: monitoredFile.path,
+                action: action,
+                userName: 'System Watcher',
+                ...forensics,
+                recipient: user.email, // Send to this specific user
+                os: forensics.operatingSystem,
+                timestamp: new Date(),
+                fileType: monitoredFile.type,
+                severity: finalSeverity
+              });
+          }
         } catch (emailErr) {
-          console.error("Failed to send watcher alert email:", emailErr.message);
+          console.error("Failed to send watcher alert emails:", emailErr.message);
         }
 
         // Emit Alert via Socket
@@ -213,6 +222,7 @@ const addWatchPath = (filePath) => {
   if (watcher) {
     const normalizedPath = filePath.replace(/\\/g, "/");
     watcher.add(normalizedPath);
+    console.log(`Monitoring started for: ${normalizedPath}`);
     console.log(`Successfully added to watcher: ${normalizedPath}`);
   }
 };

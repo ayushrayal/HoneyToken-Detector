@@ -11,7 +11,7 @@ const monitoredFileSchema = new mongoose.Schema({
   alertOnDelete: { type: Boolean, default: true },
   alertOnDownload: { type: Boolean, default: true },
   isActive: { type: Boolean, default: true },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

@@ -35,6 +35,7 @@ app.use('/api/files', require('./routes/files'));
 app.use('/api/activity', require('./routes/activity'));
 app.use('/api/alerts', require('./routes/alerts'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/settings', require('./routes/settings'));
 
 // Socket
 io.on('connection', (socket) => {

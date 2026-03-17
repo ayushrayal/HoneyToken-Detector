@@ -31,13 +31,28 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
+  const signup = async (username, email, password) => {
+    const res = await api.post('/auth/signup', { username, email, password });
+    return res.data;
+  };
+
+  const forgotPassword = async (email) => {
+    const res = await api.post('/auth/forgot-password', { email });
+    return res.data;
+  };
+
+  const resetPassword = async (token, password) => {
+    const res = await api.post('/auth/reset-password', { token, password });
+    return res.data;
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, signup, forgotPassword, resetPassword, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
 const auth = require('../middleware/auth');
 const MonitoredFile = require('../models/MonitoredFile');
 const { addWatchPath, removeWatchPath } = require('../services/fileWatcher');
@@ -7,7 +8,7 @@ const { addWatchPath, removeWatchPath } = require('../services/fileWatcher');
 // Get all monitored files
 router.get('/', auth, async (req, res) => {
   try {
-    const files = await MonitoredFile.find().sort({ createdAt: -1 });
+    const files = await MonitoredFile.find({ userId: req.user.id }).sort({ createdAt: -1 });
     res.json(files);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -17,7 +18,7 @@ router.get('/', auth, async (req, res) => {
 // Get single file
 router.get('/:id', auth, async (req, res) => {
   try {
-    const file = await MonitoredFile.findById(req.params.id);
+    const file = await MonitoredFile.findOne({ _id: req.params.id, userId: req.user.id });
     if (!file) return res.status(404).json({ message: 'File not found' });
     res.json(file);
   } catch (err) {
@@ -28,7 +29,14 @@ router.get('/:id', auth, async (req, res) => {
 // Create file
 router.post('/', auth, async (req, res) => {
   try {
-    const file = await MonitoredFile.create({ ...req.body, createdBy: req.user.id });
+    const { path } = req.body;
+    
+    // Validate that the file path exists
+    if (!fs.existsSync(path)) {
+      return res.status(400).json({ message: "File path does not exist" });
+    }
+
+    const file = await MonitoredFile.create({ ...req.body, userId: req.user.id });
     
     // Add to real-time watcher
     addWatchPath(file.path);
@@ -42,10 +50,12 @@ router.post('/', auth, async (req, res) => {
 // Update file
 router.put('/:id', auth, async (req, res) => {
   try {
-    const oldFile = await MonitoredFile.findById(req.params.id);
+    const oldFile = await MonitoredFile.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!oldFile) return res.status(404).json({ message: 'File not found or access denied' });
+
     const file = await MonitoredFile.findByIdAndUpdate(
       req.params.id,
-      { ...req.body, updatedAt: Date.now() },
+      { ...req.body, userId: req.user.id, updatedAt: Date.now() },
       { new: true }
     );
     if (!file) return res.status(404).json({ message: 'File not found' });
@@ -65,11 +75,13 @@ router.put('/:id', auth, async (req, res) => {
 // Delete file
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const file = await MonitoredFile.findById(req.params.id);
+    const file = await MonitoredFile.findOne({ _id: req.params.id, userId: req.user.id });
     if (file) {
       // Remove from real-time watcher
       removeWatchPath(file.path);
       await MonitoredFile.findByIdAndDelete(req.params.id);
+    } else {
+      return res.status(404).json({ message: 'File not found or access denied' });
     }
     res.json({ message: 'File removed from monitoring' });
   } catch (err) {

@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Shield, ActivitySquare, Bell, Settings, LogOut, X, AlertCircle } from 'lucide-react';
+import { LayoutDashboard, Shield, ActivitySquare, Bell, Settings, LogOut, X, AlertCircle, Info } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 
 const Sidebar = ({ unreadCount }) => {
@@ -19,55 +19,74 @@ const Sidebar = ({ unreadCount }) => {
     { path: '/logs', icon: ActivitySquare, label: 'Activity Logs' },
     { path: '/alerts', icon: Bell, label: 'Alerts', badge: unreadCount },
     { path: '/settings', icon: Settings, label: 'Settings' },
+    { path: '/about', icon: Info, label: 'About' },
   ];
 
   return (
-    <aside className="w-64 bg-dark-800/50 backdrop-blur-xl border-r border-dark-700/50 flex flex-col h-full shadow-2xl relative z-20">
-      <div className="h-16 flex items-center px-6 border-b border-dark-700/50">
-        <Shield className="w-8 h-8 text-primary-main mr-3" />
-        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-          Nxtzen
-        </span>
+    <aside className="w-72 bg-[#08080a] border-r border-[#1a1a20] flex flex-col h-full shadow-[20px_0_50px_rgba(0,0,0,0.5)] relative z-20">
+      <div className="h-24 flex flex-col justify-center px-8 border-b border-[#1a1a20] bg-gradient-to-b from-[#0d0d12] to-transparent">
+        <div className="flex items-center">
+          <Shield className="w-8 h-8 text-primary mr-3 filter drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+          <span className="text-xl font-bold tracking-tight text-white">
+            HoneyToken Sentinel
+          </span>
+        </div>
+        <div className="flex items-center gap-2 mt-1">
+          <div className="h-[2px] w-3 bg-primary/40"></div>
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/70">HoneyToken Sentinel — v3.0</span>
+        </div>
       </div>
 
-      <div className="p-4 border-b border-dark-700/50">
-        <div className="text-sm font-medium text-gray-300">{user?.name || 'Admin'}</div>
-        <div className="text-xs text-gray-500">{user?.email}</div>
+      <div className="p-6 border-b border-[#1a1a20]/50">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 border border-white/5 flex items-center justify-center text-primary font-bold">
+            {user?.name?.charAt(0) || 'A'}
+          </div>
+          <div>
+            <div className="text-sm font-bold text-white leading-tight">{user?.name || 'Administrator'}</div>
+            <div className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Level 4 Clearance</div>
+          </div>
+        </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+      <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1.5">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             className={({ isActive }) => `
-              flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group
+              flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-300 group relative overflow-hidden
               ${isActive 
-                ? 'bg-primary-main/10 text-primary-main border border-primary-main/20 shadow-[inset_0px_0px_10px_rgba(59,130,246,0.1)]' 
-                : 'text-gray-400 hover:text-gray-200 hover:bg-dark-700/50'
+                ? 'bg-primary/5 text-primary border border-primary/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]' 
+                : 'text-gray-500 hover:text-white hover:bg-white/[0.03]'
               }
             `}
           >
-            <div className="flex items-center">
-              <item.icon className={`w-5 h-5 mr-3 transition-colors ${item.path === '/alerts' && item.badge > 0 ? 'text-danger-main animate-pulse' : ''}`} />
-              <span className="font-medium text-sm">{item.label}</span>
-            </div>
-            {item.badge > 0 && (
-              <span className="bg-danger-main text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.5)]">
-                {item.badge > 99 ? '99+' : item.badge}
-              </span>
+            {({ isActive }) => (
+              <>
+                {isActive && <div className="absolute left-0 top-1/4 bottom-1/4 w-[3px] bg-primary rounded-r-full shadow-[0_0_8px_var(--primary)]"></div>}
+                <div className="flex items-center">
+                  <item.icon className={`w-5 h-5 mr-3.5 transition-all duration-300 ${isActive ? 'filter drop-shadow-[0_0_5px_var(--primary)]' : 'group-hover:text-white'} ${item.path === '/alerts' && item.badge > 0 ? 'text-danger animate-neon' : ''}`} />
+                  <span className="font-semibold text-sm tracking-wide">{item.label}</span>
+                </div>
+                {item.badge > 0 && (
+                  <span className={`bg-danger text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-[0_0_10px_rgba(239,68,68,0.4)]`}>
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
+              </>
             )}
           </NavLink>
         ))}
       </nav>
 
-      <div className="p-4 border-t border-dark-700/50">
+      <div className="p-6 border-t border-[#1a1a20]">
         <button
           onClick={() => setShowLogoutModal(true)}
-          className="flex items-center w-full px-3 py-2.5 text-sm font-medium text-gray-400 rounded-lg hover:bg-danger-main/10 hover:text-danger-main transition-colors"
+          className="flex items-center w-full px-4 py-3.5 text-sm font-bold text-gray-500 rounded-xl hover:bg-danger/10 hover:text-danger transition-all group"
         >
-          <LogOut className="w-5 h-5 mr-3" />
-          Logout
+          <LogOut className="w-5 h-5 mr-3.5 transition-transform group-hover:-translate-x-1" />
+          Terminate Session
         </button>
       </div>
 

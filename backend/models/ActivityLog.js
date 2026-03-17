@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const activityLogSchema = new mongoose.Schema({
   fileId: { type: mongoose.Schema.Types.ObjectId, ref: 'MonitoredFile' },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   fileName: { type: String, required: true },
   filePath: { type: String },
   fileType: { type: String, enum: ['normal', 'honeypot'], default: 'normal' },

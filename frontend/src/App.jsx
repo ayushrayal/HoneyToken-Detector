@@ -12,6 +12,11 @@ import Monitor from './pages/Monitor';
 import Logs from './pages/Logs';
 import Alerts from './pages/Alerts';
 import Settings from './pages/Settings';
+import About from './pages/About';
+
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import Signup from './pages/Signup';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -36,6 +41,9 @@ function App() {
       <Routes>
         <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+        <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+        <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
         
         {/* Protected Dashboard Routes */}
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -44,6 +52,7 @@ function App() {
           <Route path="logs" element={<Logs />} />
           <Route path="alerts" element={<Alerts />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="about" element={<About />} />
         </Route>
       </Routes>
     </Router>

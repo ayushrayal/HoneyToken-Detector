@@ -6,7 +6,7 @@ const Alert = require('../models/Alert');
 // Get all alerts
 router.get('/', auth, async (req, res) => {
   try {
-    const alerts = await Alert.find().sort({ timestamp: -1 });
+    const alerts = await Alert.find({ userId: req.user.id }).sort({ timestamp: -1 });
     res.json(alerts);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -16,7 +16,7 @@ router.get('/', auth, async (req, res) => {
 // Get unread alerts count
 router.get('/unread-count', auth, async (req, res) => {
   try {
-    const count = await Alert.countDocuments({ isRead: false });
+    const count = await Alert.countDocuments({ userId: req.user.id, isRead: false });
     res.json({ count });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -26,7 +26,11 @@ router.get('/unread-count', auth, async (req, res) => {
 // Mark alert as read
 router.patch('/:id/read', auth, async (req, res) => {
   try {
-    const alert = await Alert.findByIdAndUpdate(req.params.id, { isRead: true }, { new: true });
+    const alert = await Alert.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
+      { isRead: true },
+      { new: true }
+    );
     if (!alert) return res.status(404).json({ message: 'Alert not found' });
     
     // Emit real-time update
@@ -42,7 +46,7 @@ router.patch('/:id/read', auth, async (req, res) => {
 // Mark all as read
 router.post('/mark-all-read', auth, async (req, res) => {
   try {
-    await Alert.updateMany({ isRead: false }, { isRead: true });
+    await Alert.updateMany({ userId: req.user.id, isRead: false }, { isRead: true });
     
     // Emit real-time update
     const io = req.app.get('io');
@@ -57,7 +61,7 @@ router.post('/mark-all-read', auth, async (req, res) => {
 // Delete individual alert
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const alert = await Alert.findByIdAndDelete(req.params.id);
+    const alert = await Alert.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
     if (!alert) return res.status(404).json({ message: 'Alert not found' });
     
     // Emit real-time update
@@ -78,7 +82,7 @@ router.post('/bulk-delete', auth, async (req, res) => {
       return res.status(400).json({ message: 'Invalid alert IDs' });
     }
     
-    await Alert.deleteMany({ _id: { $in: alertIds } });
+    await Alert.deleteMany({ _id: { $in: alertIds }, userId: req.user.id });
     
     // Emit real-time update
     const io = req.app.get('io');

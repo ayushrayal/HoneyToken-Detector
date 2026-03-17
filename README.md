@@ -1,72 +1,44 @@
-# HoneyToken Sentinel (Version 2.0)
+# HoneyToken Sentinel (Version 3.0) — SOC Intelligence Dashboard
 
-HoneyToken Sentinel is a high-fidelity cybersecurity honeypot monitoring system designed to detect and alert on unauthorized file access in real-time. By placing "honeytokens" (decoy files) within your filesystem, the system acts as a silent alarm, providing immediate notification when an intruder interacts with sensitive areas.
+HoneyToken Sentinel is a high-fidelity, premium cybersecurity honeypot monitoring system designed to detect and alert on unauthorized file access in real-time. By placing "honeytokens" (decoy files) within your filesystem, the system acts as a silent alarm, providing immediate notification when an intruder interacts with sensitive areas.
 
 ---
 
-## 🚀 Version 2.0
-This version introduces major improvements in real-time detection, dashboard management, and automated security responses, including screenshot capture and enhanced alert filtering.
+## 🚀 Version 3.0 (SOC Edition)
+This version introduces a complete professional redesign, robust email alert reliability, and advanced SOC (Security Operations Center) management features.
 
 ## ✨ Features
-- **Real-time Honeypot Monitoring**: Instant detection of file interactions using high-performance filesystem watchers.
-- **File Access Detection**: Tracks read, write, and delete operations on monitored assets.
-- **Intrusion Alerts**: Automated email and dashboard notifications upon security breaches.
-- **Activity Logs**: Detailed history of all detected interactions for forensic analysis.
-- **Security Dashboard**: A premium, modern interface for managing security state at a glance.
-- **Dashboard Snapshot Capture**: Automatically captures current dashboard state or webcam snapshots during alerts.
-- **Email Alerts**: Integration with SMTP services for reliable notification delivery.
-- **Alert Management**: Full control over alerts including Mark Read, Delete, and Advanced Filtering.
+- **Premium SOC Dashboard**: A stunning, dark-themed interface with neon accents and glassmorphism for maximum visual impact.
+- **Real-time Heuristic Monitoring**: High-performance filesystem watchers with Socket.io for millisecond-latency alerts.
+- **Forensic Evidence Suite**: Automated capture of dashboard snapshots, desktop screenshots, and webcam images during critical breaches.
+- **Reliable Email Alerts**: A robust email system with retry logic (3 attempts), database status tracking, and rich HTML formatting.
+- **Advanced Incident Command**: Bulk alert management, multi-select purge, and high-fidelity search/filtering.
+- **Visual Intelligence**: Real-time Recharts visualizations showing threat vectors, high-risk assets, and access frequency.
+- **Audit Trail Forensics**: Comprehensive logging of every interaction for deep forensic analysis.
 
 ## 🛠 Tech Stack
 ### Frontend
-- **React + Vite**: For a fast, responsive single-page application experience.
-- **Tailwind CSS**: Modern utility-first styling for a premium look.
+- **React + Vite**
+- **Tailwind CSS**
+- **Recharts**
+- **Lucide Icons**
 
 ### Backend
-- **Node.js & Express**: Scalable and fast server-side architecture.
-- **Socket.io**: Enables real-time, bi-directional communication between server and client.
-- **Chokidar**: Robust and efficient file watching library.
-
-### Database
-- **MongoDB**: Flexible NoSQL database for storing alerts, logs, and user configurations.
+- **Node.js & Express**
+- **Socket.io**
+- **Mongoose (MongoDB)**
+- **Chokidar**
+- **Nodemailer**
+- **Puppeteer & node-webcam**
 
 ---
 
 ## ⚙️ Setup Instructions
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/your-repo/HoneyToken-Sentinel.git
-cd HoneyToken-Sentinel
-```
-
-### 2. Install Backend Dependencies
-```bash
-cd backend
-npm install
-```
-
-### 3. Install Frontend Dependencies
-```bash
-cd ../frontend
-npm install
-```
-
-### 4. Configure Environment Variables
-Create a `.env` file in the `backend` directory based on the variables listed below.
-
-### 5. Run the System
-**Backend:**
-```bash
-cd backend
-npm run dev
-```
-
-**Frontend:**
-```bash
-cd frontend
-npm run dev
-```
+1. Clone the repository and navigate to the project root.
+2. **Backend**: `cd backend && npm install && npm run dev`
+3. **Frontend**: `cd frontend && npm install && npm run dev`
+4. Configure the `.env` file in the backend directory.
 
 ---
 
@@ -75,43 +47,30 @@ Configure these in `backend/.env`:
 
 | Variable | Description |
 | :--- | :--- |
-| `MONGO_URI` | Connection string for MongoDB |
-| `SMTP_HOST` | SMTP server host address |
-| `SMTP_PORT` | SMTP server port |
-| `SMTP_USER` | Email service username |
-| `SMTP_PASS` | Email service password |
-| `ALERT_EMAIL` | Destination email for security alerts |
-| `JWT_SECRET` | Secret key for authentication tokens |
-
----
-
-## 📋 How It Works & Workflow
-
-HoneyToken Sentinel operates on a "tripwire" principle. 
-
-1. **Create Honeypot Rule**: Configure specific files or directories as honeytokens via the dashboard.
-2. **Backend Watches Filesystem**: The backend service (using Chokidar) monitors the specified paths for any activity.
-3. **Unauthorized Access Triggers Alert**: As soon as a file is accessed (read/modified/deleted), an event is fired.
-4. **Alert Stored in MongoDB**: The event details (timestamp, file path, access type) are persisted.
-5. **Real-time Notification**: Socket.io pushes the alert to the dashboard immediately, and an email is dispatched via SMTP.
+| `MONGO_URI` | MongoDB Connection URL |
+| `SMTP_HOST` | SMTP Server (e.g., smtp.gmail.com) |
+| `SMTP_PORT` | SMTP Port (587 or 465) |
+| `SMTP_USER` | Admin User |
+| `SMTP_PASS` | App-specific Password |
+| `ALERT_EMAIL` | Destination for security alerts |
+| `JWT_SECRET` | Authentication Secret |
+| `FRONTEND_URL` | Application root URL |
 
 ---
 
 ## 📁 Project Structure
 ```text
-HoneyToken-Detector/
+HoneyToken-Sentinel/
 ├── backend/
-│   ├── models/          # MongoDB Schemas
-│   ├── routes/          # API Endpoints
-│   ├── services/        # Business logic (Watcher, Email, Screenshot)
-│   ├── intruders/       # Directory for monitored files
-│   └── server.js        # Entry point
+│   ├── models/          # Persistent Data Schemas
+│   ├── services/        # Email, FileWatcher, Recording Logic
+│   ├── routes/          # SOC API Endpoints
+│   └── server.js        # Main Gateway
 ├── frontend/
 │   ├── src/
-│   │   ├── components/  # UI Components
-│   │   ├── pages/       # Dashboard and Login views
-│   │   ├── context/      # Auth and Alert state management
-│   │   └── App.jsx      # Main router
+│   │   ├── pages/       # Dashboard, Alerts, Logs, Monitor
+│   │   ├── components/  # Core UI Modules
+│   │   └── context/     # Alert & Auth Providers
 │   └── index.html
 └── README.md
 ```
@@ -119,4 +78,4 @@ HoneyToken-Detector/
 ---
 
 ## 📄 License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.

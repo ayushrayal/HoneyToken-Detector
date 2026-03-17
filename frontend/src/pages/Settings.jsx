@@ -1,105 +1,196 @@
-import React, { useContext } from 'react';
-import { Settings as SettingsIcon, Mail, Shield, Server, Database } from 'lucide-react';
+import React, { useContext, useState } from 'react';
+import { Settings as SettingsIcon, Mail, Shield, Server, Database, Info, Send, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
+import api from '../utils/api';
+import toast from 'react-hot-toast';
 
 const Settings = () => {
   const { user } = useContext(AuthContext);
+  const [isSending, setIsSending] = useState(false);
+
+  const handleTestEmail = async () => {
+    setIsSending(true);
+    try {
+      const response = await api.post('/settings/test-email');
+      if (response.data.success) {
+        toast.success(response.data.message || 'Test email sent successfully.', {
+          icon: <CheckCircle2 className="text-success w-5 h-5" />,
+          style: { background: '#0d0d12', color: '#fff', border: '1px solid rgba(34, 197, 94, 0.2)' }
+        });
+      } else {
+        throw new Error(response.data.message);
+      }
+    } catch (err) {
+      console.error('Test email error:', err);
+      toast.error(err.response?.data?.message || 'Failed to send email. Check SMTP configuration.', {
+        icon: <AlertCircle className="text-danger w-5 h-5" />,
+        style: { background: '#0d0d12', color: '#fff', border: '1px solid rgba(239, 68, 68, 0.2)' }
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <SettingsIcon className="w-6 h-6 text-primary-main" />
-          Settings
-        </h1>
-        <p className="text-gray-400 text-sm mt-1">Configure Nxtzen Guardian preferences</p>
+    <div className="space-y-10 max-w-6xl mx-auto pb-10 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-black text-white tracking-tighter flex items-center gap-4">
+            <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
+               <SettingsIcon className="w-8 h-8 text-primary" />
+            </div>
+            CORE PREFERENCES
+          </h1>
+          <p className="text-gray-500 text-sm mt-2 font-medium">Configure HoneyToken Sentinel intelligence parameters.</p>
+        </div>
       </div>
 
-      <div className="space-y-8">
+      <div className="grid lg:grid-cols-2 gap-8 items-start">
         {/* Profile Settings */}
-        <section className="glass-card p-6 border-l-4 border-l-primary-main">
-          <div className="flex items-center gap-3 mb-6">
-            <Shield className="w-5 h-5 text-primary-main" />
-            <h2 className="text-lg font-semibold text-white">Admin Profile</h2>
+        <section className="glass-card p-10 relative overflow-hidden group border-white/[0.03]">
+          <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+             <Shield className="w-40 h-40 text-primary" />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Full Name</label>
-              <input type="text" readOnly value={user?.name || ''} className="glass-input bg-dark-800/50 cursor-not-allowed" />
+          <div className="flex items-center gap-4 mb-10">
+            <div className="p-3 bg-primary/10 rounded-xl border border-primary/20">
+               <Shield className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Email Address</label>
-              <input type="email" readOnly value={user?.email || ''} className="glass-input bg-dark-800/50 cursor-not-allowed" />
+               <h2 className="text-xl font-bold text-white tracking-tight">Access Identifier</h2>
+               <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-0.5">Administrator Profile Details</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Role</label>
-              <input type="text" readOnly value={user?.role?.toUpperCase() || 'ADMIN'} className="glass-input bg-dark-800/50 cursor-not-allowed text-primary-main font-bold" />
+          </div>
+
+          <div className="space-y-6">
+            <div className="space-y-2.5">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Full Command Name</label>
+              <input type="text" readOnly value={user?.name || ''} className="glass-input bg-white/[0.01] border-white/5 cursor-not-allowed text-white font-bold" />
+            </div>
+            <div className="space-y-2.5">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Secure Email Identity</label>
+              <input type="email" readOnly value={user?.email || ''} className="glass-input bg-white/[0.01] border-white/5 cursor-not-allowed text-white/50" />
+            </div>
+            <div className="space-y-2.5">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Access Clearance Level</label>
+              <div className="glass-input bg-white/[0.01] border-primary/20 text-primary font-black uppercase tracking-widest flex items-center justify-between">
+                 <span>Level 5 (Admin Override)</span>
+                 <Shield className="w-4 h-4" />
+              </div>
             </div>
           </div>
         </section>
 
-        {/* System Settings */}
-        <section className="glass-card p-6 border-l-4 border-l-orange-500">
-          <div className="flex items-center gap-3 mb-6">
-            <Server className="w-5 h-5 text-orange-500" />
-            <h2 className="text-lg font-semibold text-white">System Configuration</h2>
-          </div>
-          <div className="space-y-4">
-            <div className="p-4 bg-dark-800 rounded-lg border border-dark-700 flex justify-between items-center">
-              <div>
-                <h4 className="text-white font-medium">Real-time WebSockets</h4>
-                <p className="text-sm text-gray-400 mt-1">Receive live alerts without refreshing.</p>
+        <div className="space-y-8">
+          {/* System Settings */}
+          <section className="glass-card p-8 border-white/[0.03]">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="p-3 bg-warning/10 rounded-xl border border-warning/20">
+                 <Server className="w-5 h-5 text-warning" />
               </div>
-              <div className="w-12 h-6 bg-primary-main rounded-full flex items-center px-1">
-                <div className="w-4 h-4 rounded-full bg-white transform translate-x-6"></div>
-              </div>
+              <h2 className="text-lg font-bold text-white tracking-tight">SOC Intelligence Engine</h2>
             </div>
             
-            <div className="p-4 bg-dark-800 rounded-lg border border-dark-700 flex justify-between items-center opacity-70">
-              <div>
-                <h4 className="text-white font-medium">Auto-purge Old Logs</h4>
-                <p className="text-sm text-gray-400 mt-1">Delete logs older than 90 days. (Configured in .env)</p>
+            <div className="space-y-4">
+              <div className="p-5 bg-white/[0.02] rounded-2xl border border-white/5 flex justify-between items-center group">
+                <div>
+                  <h4 className="text-white font-bold text-sm">Real-time Telemetry</h4>
+                  <p className="text-[10px] text-gray-500 font-medium mt-1">Bi-directional WebSocket link is operational.</p>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                   <div className="w-2 h-2 rounded-full bg-primary animate-neon shadow-[0_0_8px_var(--primary)]"></div>
+                </div>
               </div>
-              <div className="w-12 h-6 bg-dark-600 rounded-full flex items-center px-1 cursor-not-allowed">
-                 <div className="w-4 h-4 rounded-full bg-gray-400"></div>
+              
+              <div className="p-5 bg-white/[0.02] rounded-2xl border border-white/5 flex justify-between items-center opacity-60">
+                <div>
+                  <h4 className="text-white/60 font-bold text-sm">Auto-Purge Forensics</h4>
+                  <p className="text-[10px] text-gray-600 font-medium mt-1">Logs transition to cold storage after 90 days.</p>
+                </div>
+                <div className="w-8 h-4 bg-gray-800 rounded-full"></div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Email Alert Settings */}
-        <section className="glass-card p-6 border-l-4 border-l-success">
-          <div className="flex items-center gap-3 mb-6">
-            <Mail className="w-5 h-5 text-success" />
-            <h2 className="text-lg font-semibold text-white">Email Notifications</h2>
-          </div>
-          
-          <div className="bg-dark-800/50 border border-dark-700 rounded-lg p-5 mb-6">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-success/10 rounded-lgShrink-0">
-                <Database className="w-5 h-5 text-success" />
-              </div>
-              <div>
-                 <p className="text-gray-300 text-sm leading-relaxed">
-                   Email credentials (SMTP Server, Provider, App Password) are securely managed via the backend `.env` file to prevent client-side exposure. Target alert email address is currently statically mapped to <span className="text-primary-main font-mono">nxtzen.cog@gmail.com</span>.
-                 </p>
-              </div>
+          {/* Email Alert Settings */}
+          <section className="glass-card p-8 border-white/[0.03] relative overflow-hidden group">
+            <div className="absolute -right-10 -bottom-10 p-6 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+               <Mail className="w-48 h-48 text-accent" />
             </div>
-          </div>
+            
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-accent/10 rounded-xl border border-accent/20">
+                   <Mail className="w-5 h-5 text-accent" />
+                </div>
+                <h2 className="text-lg font-bold text-white tracking-tight">Notification Channels</h2>
+              </div>
+              <button 
+                onClick={handleTestEmail}
+                disabled={isSending}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                  isSending 
+                    ? 'bg-white/5 text-gray-500 cursor-not-allowed' 
+                    : 'bg-accent text-white hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] active:scale-95'
+                }`}
+              >
+                {isSending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                {isSending ? 'Sending...' : 'Send Test Email'}
+              </button>
+            </div>
+            
+            <div className="p-5 bg-accent/5 border border-accent/10 rounded-2xl mb-8 flex gap-4">
+               <Info className="w-5 h-5 text-accent shrink-0" />
+               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wide leading-relaxed">
+                 SMTP configuration and alert recipients are managed via <span className="text-white italic">environment variables</span>. 
+                 Recipient Email: <span className="text-accent underline decoration-accent/30 underline-offset-4">nxtzen.co@gmail.com</span>
+               </p>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">SMTP Service</label>
-              <input type="text" readOnly value="Gmail (Nodemailer)" className="glass-input bg-dark-800/50 cursor-not-allowed" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+               <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Protocol Service</label>
+                <div className="glass-input h-12 bg-black/20 border-white/5 text-xs font-bold text-gray-400 flex items-center">GMAIL (NODE-WATCHER)</div>
+              </div>
+               <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Forensic Attachment</label>
+                <div className="glass-input h-12 bg-black/20 border-white/5 text-xs font-bold text-white flex items-center gap-2">
+                   <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_5px_var(--primary)]"></div> Puppeteer Snapshot
+                </div>
+              </div>
             </div>
-             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Attach Snapshot to Alert Email</label>
-              <select disabled className="glass-input bg-dark-800/50 cursor-not-allowed appearance-none">
-                <option>Enabled (Puppeteer)</option>
-              </select>
+
+            {/* Sub-sections for SMTP and Monitoring */}
+            <div className="space-y-6">
+              <div className="p-6 bg-white/[0.01] border border-white/5 rounded-2xl relative z-10">
+                <h4 className="text-white font-bold text-sm mb-4 flex items-center gap-2">
+                  <Server className="w-4 h-4 text-accent" /> SMTP Configuration
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest">SMTP Host</label>
+                    <input type="text" readOnly value="smtp.gmail.com" className="glass-input py-2 text-xs bg-black/20 border-white/5 text-gray-400" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest">SMTP Port</label>
+                    <input type="text" readOnly value="587" className="glass-input py-2 text-xs bg-black/20 border-white/5 text-gray-400" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 bg-white/[0.01] border border-white/5 rounded-2xl relative z-10">
+                <h4 className="text-white font-bold text-sm mb-4 flex items-center gap-2">
+                  <Database className="w-4 h-4 text-warning" /> System Monitoring
+                </h4>
+                <div className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5">
+                  <span className="text-xs text-gray-400 font-medium">Auto-Snapshot on Incident</span>
+                  <div className="w-8 h-4 bg-primary/20 rounded-full relative">
+                    <div className="absolute right-0.5 top-0.5 w-3 h-3 bg-primary rounded-full shadow-[0_0_5px_var(--primary)]"></div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
     </div>
   );

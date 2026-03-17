@@ -11,7 +11,7 @@ const UAParser = require('ua-parser-js');
 // Get all activity logs
 router.get('/', auth, async (req, res) => {
   try {
-    const logs = await ActivityLog.find().sort({ timestamp: -1 }).limit(100);
+    const logs = await ActivityLog.find({ userId: req.user.id }).sort({ timestamp: -1 }).limit(100);
     res.json(logs);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -39,6 +39,7 @@ router.post('/', async (req, res) => {
     // Create log
     const log = await ActivityLog.create({
       fileId: file._id,
+      userId: file.userId, // file.userId should be the owner
       fileName: file.name,
       filePath: file.path,
       fileType: file.type,
@@ -66,6 +67,7 @@ router.post('/', async (req, res) => {
       const alert = await Alert.create({
         activityId: log._id,
         fileId: file._id,
+        userId: file.userId,
         fileName: file.name,
         action,
         userName: log.userName,

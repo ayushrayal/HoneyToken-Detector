@@ -57,10 +57,12 @@ const Layout = () => {
   }
 
   return (
-    <div className="flex h-screen bg-dark-900 overflow-hidden">
+    <div className="flex h-screen bg-[#050507] overflow-hidden">
       <Sidebar unreadCount={unreadCount} />
-      <main className="flex-1 overflow-y-auto p-8 relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 -z-10"></div>
+      <main className="flex-1 overflow-y-auto p-10 relative">
+        <div className="fixed inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -z-10"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px] -z-10"></div>
         <Outlet context={{ setUnreadCount, unreadCount }} />
       </main>
     </div>
