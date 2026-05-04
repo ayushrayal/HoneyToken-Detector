@@ -1,3 +1,7 @@
+// Override DNS to use Google's public DNS (fixes SRV lookup issues on restrictive networks)
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -79,3 +83,4 @@ process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err);
   process.exit(1);
 });
+ 
