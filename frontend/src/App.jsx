@@ -17,6 +17,8 @@ import About from './pages/About';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Signup from './pages/Signup';
+import NotFound from './pages/NotFound';
+
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -54,6 +56,9 @@ function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="about" element={<About />} />
         </Route>
+
+        {/* Catch-all 404 Route */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

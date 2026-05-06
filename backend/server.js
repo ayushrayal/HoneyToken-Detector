@@ -9,9 +9,10 @@ const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 const { startWatching } = require('./services/fileWatcher');
-
+const path = require("path");
 const app = express();
 const server = http.createServer(app);
+app.use(express.static(path.join(__dirname, 'public')));
 const io = new Server(server, {
   cors: {
     origin: ["http://localhost:5173", "http://localhost:5174"],
@@ -40,7 +41,13 @@ app.use('/api/activity', require('./routes/activity'));
 app.use('/api/alerts', require('./routes/alerts'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/settings', require('./routes/settings'));
+app.use('/api', (req, res) => {
+  res.status(404).json({ message: 'API Route Not Found' });
+});
 
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 // Socket
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
@@ -55,7 +62,8 @@ app.use((err, req, res, next) => {
   console.error('Unhandled Server Error:', err);
   res.status(500).json({ message: 'Internal Server Error' });
 });
-
+console.log("EMAIL_USER:", process.env.EMAIL_USER);
+console.log("EMAIL_PASS:", process.env.EMAIL_PASS);
 // Database
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {

@@ -1,0 +1,78 @@
+# HoneyToken Sentinel - Simple Explanation (Hinglish)
+
+## 1. Project Kya Hai? (Overview)
+Ye ek security system hai jo aapke sensitive files (jaise passwords, config files) ko monitor karta hai. Isme hum "HoneyTokens" use karte hain—ye aise fake files hote hain jo intruders (attackers) ke liye bait (chara) ka kaam karte hain. Agar koi in files ko touch karega, system turant pakad lega.
+
+**Kyu Zaruri Hai?**
+Aksar attackers network ke andar ghusne ke baad files churate hain. Ye system unhe tabhi pakad leta hai jab wo pehli file ko open karte hain.
+
+---
+
+## 2. Tech Stack (Kaunsi cheezein use hui hain?)
+
+*   **Frontend (React + Vite):** Interface banane ke liye. Vite isliye use kiya taaki dashboard fast load ho.
+*   **Backend (Node.js + Express):** Sara logic yahi chalta hai—file monitor karna aur email bhejna.
+*   **Database (MongoDB):** Users ka data, logs, aur alerts save karne ke liye.
+*   **Libraries:**
+    *   **Chokidar:** Files par nazar rakhne ke liye (Watchman ki tarah).
+    *   **Nodemailer:** Alert aane par Admin ko email bhejne ke liye.
+    *   **Puppeteer:** Alert ke waqt dashboard ki photo khinchne ke liye.
+    *   **Webcam/Screenshot:** Intruder ki shakal aur uska desktop record karne ke liye.
+
+---
+
+## 3. Folder Structure (Files kahan hain?)
+
+*   `backend/`: Yahan server ka saara dimaag hai.
+    *   `services/`: Yahan main kaam hota hai—jaise file watch karna ya email bhejna.
+    *   `models/`: Data ka structure (Database table ki tarah).
+*   `frontend/`: Aapko jo screen par dikhta hai, wo yahan hai (Login, Dashboard, Charts).
+*   `intruders/`: Intruder ki webcam photos yahan save hoti hain.
+
+---
+
+## 4. Kaam Kaise Karta Hai? (Code Flow)
+
+1.  Aapne ek file select ki monitor karne ke liye.
+2.  Ek attacker ne us file ko **Open** ya **Edit** kiya.
+3.  **Chokidar** (Watcher) ne backend ko signal diya.
+4.  Backend ne turant check kiya ki ye honeypot hai ya normal file.
+5.  **Forensics Start:** System ne attacker ki webcam se photo li aur uska desktop screenshot liya.
+6.  **Notification:** Aapke dashboard par red color ka alert popup aaya aur aapko email mil gaya.
+
+---
+
+## 5. Main Features
+
+*   **Live Monitoring:** Palk jhapakte hi detection.
+*   **Intruder Photo:** Attacker ki shakal capture karna.
+*   **Smart Alerts:** Agar koi bar-bar file touch kare, toh severity high ho jati hai.
+*   **Dashboard:** Saare attack trends charts ke form mein dikhte hain.
+
+---
+
+## 6. Kamiya aur Improvements (Limitations)
+
+*   **Local Storage:** Photos abhi PC mein save ho rahi hain. Inhe cloud (AWS) par hona chahiye.
+*   **Single PC:** Abhi ye sirf usi PC ko monitor karta hai jahan ye install hai. 
+*   **Resource:** Puppeteer thoda zyada RAM use karta hai.
+
+---
+
+## 7. Future Plan
+
+*   **AI Detection:** Simple rules ki jagah Machine Learning use karna pattern pehchanne ke liye.
+*   **Mobile App:** Alerts ke liye ek mobile app banana.
+*   **Cloud Support:** AWS ya Docker par deploy karna.
+
+---
+
+## 8. Presentation ke liye Summary (PPT Points)
+
+*   **Project Name:** HoneyToken Sentinel
+*   **Kaam:** Digital traps (Honeypots) se hackers ko pakadna.
+*   **Specialty:** Real-time forensics (Webcam + Screenshot).
+*   **Tech:** MERN Stack + Socket.io.
+*   **Impact:** Insider threats aur data theft se bachata hai.
+
+---

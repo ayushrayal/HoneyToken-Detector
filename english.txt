@@ -1,0 +1,151 @@
+# HoneyToken Sentinel - Comprehensive Project Report & Documentation
+
+## 1. Project Overview
+HoneyToken Sentinel is a sophisticated, proactive cybersecurity defense system designed to detect and alert on unauthorized access to sensitive files using "HoneyTokens" (fake digital assets used as bait). Unlike traditional perimeter defenses, this system focuses on internal threat detection and lateral movement within a local filesystem.
+
+**Problem it Solves:** 
+Traditional security often misses "insider threats" or attackers who have already breached the network. Once inside, attackers look for credentials, configuration files, or sensitive data. HoneyToken Sentinel places "traps" in the form of files that should never be touched.
+
+**Importance:** 
+It provides immediate visibility into file-level interactions, captures forensic evidence (screenshots/webcam photos) at the exact moment of a breach, and alerts security personnel in real-time.
+
+---
+
+## 2. Complete Tech Stack Analysis
+
+### Frontend
+*   **React (with Vite):** Chosen for its component-based architecture and fast development cycle. Vite provides a modern, high-performance build tool compared to the older Webpack.
+*   **Tailwind CSS:** Used for rapid UI development with a premium, dark-themed aesthetic.
+*   **Chart.js:** Used for visualizing attack trends and activity logs in the dashboard.
+*   **Socket.io-client:** Enables real-time communication with the backend for instant alert notifications.
+
+### Backend
+*   **Node.js & Express:** A scalable, event-driven environment perfect for I/O-intensive tasks like file monitoring and handling multiple socket connections.
+*   **MongoDB (via Mongoose):** A NoSQL database used to store user data, file configurations, activity logs, and alerts. MongoDB's flexible schema is ideal for logging varying metadata.
+
+### Core Libraries
+*   **Chokidar:** Used for efficient cross-platform file system watching. *Alternative:* Node's native `fs.watch`, but it is buggy and inconsistent across OS. Chokidar is much more reliable.
+*   **Nodemailer:** Used for sending professional HTML-based email alerts.
+*   **Puppeteer:** Used to capture a "forensic snapshot" of the security dashboard at the time of an alert.
+*   **Node-Webcam & Screenshot-desktop:** Used to capture physical (webcam) and digital (desktop) evidence of the intruder.
+
+---
+
+## 3. Folder Structure Breakdown
+
+### backend/
+*   `server.js`: The entry point. Configures Express, Socket.io, MongoDB connection, and initializes the File Watcher.
+*   `routes/`: Contains API endpoints for Authentication, File Management, Dashboard Stats, and Alerts.
+*   `models/`: Defines Mongoose schemas for Users, MonitoredFiles, ActivityLogs, and Alerts.
+*   `services/`: Business logic layer.
+    *   `fileWatcher.js`: The core engine that interacts with the OS file system.
+    *   `emailService.js`: Handles SMTP configuration and HTML email templates.
+    *   `screenshotService.js` / `webcamService.js`: Forensic capture logic.
+*   `intruders/` & `screenshots/`: Storage for captured forensic images.
+
+### frontend/
+*   `src/pages/`: Contains the UI for Login, Dashboard, Monitoring Config, Alerts, and Logs.
+*   `src/context/`: Manages global state for Authentication and Socket connections.
+*   `src/components/`: Reusable UI elements like the Sidebar and Layout wrappers.
+
+---
+
+## 4. Code Flow (Operational Logic)
+
+1.  **System Start:** The backend starts and `startWatching()` is called, loading all "Active" files from the database into the Chokidar watcher.
+2.  **File Interaction:** An intruder opens, edits, or deletes a monitored file.
+3.  **Detection:** Chokidar triggers an event. The `fileWatcher.js` service maps this event to a specific `MonitoredFile` in the database.
+4.  **Logging:** An `ActivityLog` entry is created with system forensics (IP, Hostname, OS).
+5.  **Alert Trigger:** If the file is a "Honeypot" or has specific alert flags enabled, an `Alert` object is created.
+6.  **Forensic Capture:** The system simultaneously captures a webcam photo, a desktop screenshot, and a dashboard snapshot.
+7.  **Notification:** The alert is saved to the DB, emitted via Socket.io to the frontend for a popup, and emailed to the admin via Nodemailer.
+8.  **Dashboard Update:** The frontend receives the new data and updates charts and tables in real-time.
+
+---
+
+## 5. Deep Code Explanation
+
+### AI Rule Engine (in `fileWatcher.js`)
+```javascript
+const checkSuspiciousBehavior = async (fileId) => {
+  const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+  const count = await Alert.countDocuments({
+    fileId,
+    timestamp: { $gte: twoMinutesAgo }
+  });
+  return count >= 3;
+};
+```
+This function implements a "Behavioral Analysis" logic. If a file triggers 3 or more alerts within 2 minutes, it upgrades the severity to **CRITICAL**, assuming a scripted attack or persistent intruder.
+
+### The Watcher Loop
+The `watcher.on("all", ...)` block is the core. It uses a regex-based match to find the monitored file in the DB, even if the path casing varies. It captures `os.hostname()` and `os.platform()` to identify where the breach happened.
+
+---
+
+## 6. Features Implemented
+
+*   **Real-time Monitoring:** Instant detection using low-level OS hooks.
+*   **Honeypot Assets:** Specific "Trap" files that trigger high-severity alerts on any access.
+*   **Tri-Forensic Capture:** Captures the intruder's face (Webcam), their screen (Desktop), and the system state (Dashboard).
+*   **Automated Email System:** Professional SOC-style email alerts with HTML templates.
+*   **Interactive Dashboard:** Visual analytics using Chart.js to track "Top Attacked Files" and "Alert Trends."
+
+---
+
+## 7. Bugs / Issues / Limitations
+
+*   **Local Scope:** Currently only monitors files on the machine where the backend is running.
+*   **Storage:** Forensic images are stored locally. If an attacker deletes the project folder, the evidence is lost.
+*   **DNS Hack:** The `dns.setServers` in `server.js` is a temporary fix for network environments that block standard SRV lookups (common in some ISPs for MongoDB Atlas).
+*   **Resource Usage:** Puppeteer (used for snapshots) is memory-heavy. Frequent alerts could spike CPU/RAM.
+
+---
+
+## 8. Improvements
+
+*   **Cloud Storage:** Upload forensic captures to AWS S3 or Cloudinary for persistent, tamper-proof evidence.
+*   **Multi-Agent Support:** Build a "Sensor" agent that can be installed on multiple servers, reporting back to a central dashboard.
+*   **Better AI:** Use Machine Learning (e.g., TensorFlow.js) to detect "patterns" of access rather than simple count thresholds.
+*   **UI Polish:** Add more granular filtering in the Logs and Alerts pages.
+
+---
+
+## 9. Future Technologies
+
+*   **OAuth 2.0 / RBAC:** Implement better access control for different team members (Analyst vs. Admin).
+*   **WebSockets Scaling:** Use Redis for Socket.io scaling to support thousands of concurrent sensors.
+*   **Dockerization:** Containerize the app for easy deployment in enterprise environments.
+*   **Threat Intelligence Integration:** Automatically check the intruder's IP against global blacklists (AbuseIPDB).
+
+---
+
+## 10. Architecture & Data Flow
+
+**Architecture:** MERN Stack + Socket.io + OS Hooks.
+
+**Data Flow Diagram:**
+`Intruder` -> `File System` -> `Chokidar` -> `Backend Logic` -> `Database` -> `Socket.io/Email` -> `Admin Dashboard`
+
+---
+
+## 11. Security Analysis
+
+*   **Authentication:** Uses JWT (JSON Web Tokens) with 24h expiration.
+*   **Passwords:** Salted and hashed using `bcryptjs` (10 rounds).
+*   **Weak Points:** The system runs with file system permissions. If not configured correctly, it could be bypassed by an attacker with SYSTEM/ROOT level access.
+
+---
+
+## 12. Conclusion
+HoneyToken Sentinel is a robust "Deception Technology" implementation. It moves beyond passive logging into active defense. Its strength lies in the immediate forensic collection, providing a "photo of the thief" which is rare in standard file monitors.
+
+---
+
+## 13. Presentation Ready Summary (PPT)
+
+*   **Project Name:** HoneyToken Sentinel v3.0
+*   **Core Concept:** File-based deception (Honeypots) for internal security.
+*   **Key Highlight:** Real-time webcam and desktop forensic capture upon breach.
+*   **Tech Stack:** React, Node.js, MongoDB, Socket.io, Puppeteer.
+*   **USP:** Automated behavioral analysis and multi-channel alerting system.
